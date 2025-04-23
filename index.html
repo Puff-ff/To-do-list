@@ -1,65 +1,149 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>大学生简历</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-
-    h1 {
-      color: #333;
-    }
-
-    h2 {
-      color: #666;
-    }
-
-    p {
-      margin: 5px 0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TodoList</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #task-input {
+            width: 70%;
+            padding: 10px;
+            margin-right: 10px;
+        }
+        #add-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #task-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .task-actions button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .edit-input {
+            width: 60%;
+            padding: 5px;
+        }
+    </style>
 </head>
-
 <body>
-  <div class="container">
-    <h1>个人简历</h1>
-    <h2>个人信息</h2>
-    <p><strong>姓名</strong>: [你的名字]</p>
-    <p><strong>性别</strong>: [你的性别]</p>
-    <p><strong>年龄</strong>: [你的年龄]</p>
-    <p><strong>联系电话</strong>: [你的电话]</p>
-    <p><strong>电子邮箱</strong>: [你的邮箱]</p>
+    <h1>TodoList</h1>
+    <div>
+        <input type="text" id="task-input" placeholder="输入新任务...">
+        <button id="add-btn">添加</button>
+    </div>
+    <ul id="task-list"></ul>
 
-    <h2>教育背景</h2>
-    <p><strong>大学名称</strong>: [大学名称]</p>
-    <p><strong>所学专业</strong>: [专业名称]</p>
-    <p><strong>入学时间</strong>: [入学时间]</p>
-    <p><strong>毕业时间</strong>: [毕业时间]</p>
-    <p><strong>平均绩点</strong>: [具体绩点]</p>
-
-    <h2>专业技能</h2>
-    <p>[列举你的专业技能，如编程语言、软件应用等]</p>
-
-    <h2>校园经历</h2>
-    <p><strong>社团名称</strong>: [社团名称]</p>
-    <p><strong>担任职务</strong>: [职务名称]</p>
-    <p><strong>主要活动</strong>: [描述参与的主要活动]</p>
-
-    <h2>实习经历</h2>
-    <p><strong>公司名称</strong>: [公司名称]</p>
-    <p><strong>实习岗位</strong>: [岗位名称]</p>
-    <p><strong>实习时间</strong>: [开始时间 - 结束时间]</p>
-    <p><strong>主要工作内容</strong>: [详细描述工作内容]</p>
-
-    <h2>获奖情况</h2>
-    <p>[列出你获得的重要奖项]</p>
-
-    <h2>自我评价</h2>
-    <p>[简要描述你的个人优势、性格特点、职业目标等]</p>
-  </div>
+    <script>
+        // 获取DOM元素
+        const taskInput = document.getElementById('task-input');
+        const addBtn = document.getElementById('add-btn');
+        const taskList = document.getElementById('task-list');
+        
+        // 任务数组
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        
+        // 渲染任务列表
+        function renderTasks() {
+            taskList.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = 'task-item';
+                
+                if (task.isEditing) {
+                    li.innerHTML = `
+                        <input type="text" class="edit-input" value="${task.text}">
+                        <div class="task-actions">
+                            <button onclick="saveTask(${index})">保存</button>
+                            <button onclick="cancelEdit(${index})">取消</button>
+                        </div>
+                    `;
+                } else {
+                    li.innerHTML = `
+                        <span>${task.text}</span>
+                        <div class="task-actions">
+                            <button onclick="editTask(${index})">编辑</button>
+                            <button onclick="deleteTask(${index})">删除</button>
+                        </div>
+                    `;
+                }
+                
+                taskList.appendChild(li);
+            });
+            
+            // 保存到本地存储
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+        
+        // 添加任务
+        function addTask() {
+            const text = taskInput.value.trim();
+            if (text) {
+                tasks.push({ text, isEditing: false });
+                taskInput.value = '';
+                renderTasks();
+            }
+        }
+        
+        // 删除任务
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            renderTasks();
+        }
+        
+        // 编辑任务
+        function editTask(index) {
+            tasks[index].isEditing = true;
+            renderTasks();
+        }
+        
+        // 保存编辑
+        function saveTask(index) {
+            const input = document.querySelector(`.task-item:nth-child(${index + 1}) .edit-input`);
+            tasks[index].text = input.value.trim();
+            tasks[index].isEditing = false;
+            renderTasks();
+        }
+        
+        // 取消编辑
+        function cancelEdit(index) {
+            tasks[index].isEditing = false;
+            renderTasks();
+        }
+        
+        // 事件监听
+        addBtn.addEventListener('click', addTask);
+        taskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addTask();
+        });
+        
+        // 初始化渲染
+        renderTasks();
+        
+        // 暴露函数到全局
+        window.deleteTask = deleteTask;
+        window.editTask = editTask;
+        window.saveTask = saveTask;
+        window.cancelEdit = cancelEdit;
+    </script>
 </body>
-
 </html>
